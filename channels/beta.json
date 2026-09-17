@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "product": "design-editor",
+  "repository": "pavanxs/design-editor-downloads",
+  "channel": "beta",
+  "version": "0.1.0-beta.2",
+  "publishedAt": "2026-09-17T22:43:20.099Z",
+  "artifacts": [
+    {
+      "platform": "darwin",
+      "arch": "arm64",
+      "filename": "design-editor-0.1.0-beta.2-darwin-arm64.tar.gz",
+      "bytes": 187169599,
+      "sha256": "849792c3ed4f912ce31edaa9b89fd03c9dcfefa0cd4a5ed70d3f08662429bb5c",
+      "url": "https://github.com/pavanxs/design-editor-downloads/releases/download/v0.1.0-beta.2/design-editor-0.1.0-beta.2-darwin-arm64.tar.gz"
+    },
+    {
+      "platform": "darwin",
+      "arch": "x64",
+      "filename": "design-editor-0.1.0-beta.2-darwin-x64.tar.gz",
+      "bytes": 192176297,
+      "sha256": "3a1b7c18be99c6355d2280ac2afe820c6b116d50fdc1bd89b52964c79c9b14e9",
+      "url": "https://github.com/pavanxs/design-editor-downloads/releases/download/v0.1.0-beta.2/design-editor-0.1.0-beta.2-darwin-x64.tar.gz"
+    },
+    {
+      "platform": "win32",
+      "arch": "x64",
+      "filename": "design-editor-0.1.0-beta.2-win32-x64.zip",
+      "bytes": 219294363,
+      "sha256": "7d152e583d7be8deb8b74f4fdf0c637eef1dd9bf99a20e86fd4360255dea33b1",
+      "url": "https://github.com/pavanxs/design-editor-downloads/releases/download/v0.1.0-beta.2/design-editor-0.1.0-beta.2-win32-x64.zip"
+    }
+  ]
+}
