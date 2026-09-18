@@ -1,5 +1,6 @@
 # Design Editor Windows beta installer. HTTPS/checksum integrity; no signature claim.
-# No npm prerequisite or security-policy bypass. Not live until release publication.
+# No npm prerequisite or security-policy bypass.
+try {
 & {
 # Generated from the reviewed installer/client sources. Do not edit generated copies.
 # Windows PowerShell 5.1 / .NET installation core. No npm, administrator changes,
@@ -9,6 +10,21 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.IO.Compression
+
+function Get-DENativeArchitecture {
+    # Interactive modules can define another RuntimeInformation type with the
+    # same full name. Resolve from the running .NET core assembly, not the
+    # PowerShell name cache (PSReadLine's compatibility type has no OSArchitecture).
+    try {
+        $runtime = [object].Assembly.GetType('System.Runtime.InteropServices.RuntimeInformation', $false)
+        if ($null -eq $runtime) { throw 'Missing system runtime type.' }
+        $property = $runtime.GetProperty('OSArchitecture', [Reflection.BindingFlags]'Public,Static')
+        if ($null -eq $property) { throw 'Missing system architecture property.' }
+        $architecture = $property.GetValue($null, $null).ToString().ToLowerInvariant()
+    } catch { throw 'Windows architecture could not be read from the system runtime.' }
+    if ($architecture -cnotin @('x64','arm64')) { throw 'This Windows architecture is not supported.' }
+    return $architecture
+}
 
 function Assert-DEPlainPath([string] $Path) {
     $full = [IO.Path]::GetFullPath($Path)
@@ -186,7 +202,7 @@ function Install-DesignEditorArchive {
         [Parameter(Mandatory=$true)][long] $Bytes
     )
     if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT) { throw 'This installation core is for Windows.' }
-    $nativeArch = [Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
+    $nativeArch = Get-DENativeArchitecture
     if ($nativeArch -cne $Architecture) { throw 'This release is not for the current Windows architecture.' }
     if ($Version.Length -gt 96 -or $Version.Trim() -cne $Version -or $Version -cnotmatch '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$') { throw 'Use an exact release version.' }
     if ($Version.Contains('-')) {
@@ -433,7 +449,7 @@ function Read-DECurrent([string] $InstallRoot) {
     try { $state = [IO.File]::ReadAllText($file) | ConvertFrom-Json } catch { throw 'The installed-version record is invalid.' }
     Assert-DEKeys $state @('schemaVersion','product','version','platform','arch','directory','executable','archiveSha256')
     Assert-DEVersion $state.version
-    $arch = [Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
+    $arch = Get-DENativeArchitecture
     if (!(Test-DEInteger $state.schemaVersion 1 1) -or $state.product -cne 'design-editor' -or $state.platform -cne 'win32' -or $state.arch -cne $arch -or
         $state.directory -cne ('versions/' + $state.version + '-win32-' + $arch) -or
         $state.executable -cnotmatch '^app/[A-Za-z][A-Za-z0-9 _-]{0,60}\.exe$' -or
@@ -450,7 +466,7 @@ function Update-DesignEditorInstallation([string] $InstallRoot) {
     catch { throw 'Another update is running. Try again when it finishes.' }
     $temporary = $null
     try {
-        $arch = [Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
+        $arch = Get-DENativeArchitecture
         if ($arch -cnotin @('x64','arm64')) { throw 'This Windows architecture is not supported.' }
         $current = Read-DECurrent $root
         $release = ConvertFrom-DEChannel (Receive-DEHttps $script:DEChannelUrl 65536) $arch
@@ -554,7 +570,6 @@ function Invoke-DesignEditorCommand([string] $InstallRoot, [string[]] $Arguments
     } finally { $launchLock.Dispose() }
 }
 
-try {
     if (!$env:LOCALAPPDATA) { throw 'Windows Local App Data is unavailable.' }
     $root = Join-Path $env:LOCALAPPDATA 'Programs/DesignEditorBeta'
     Write-Host 'Preparing Design Editor. This beta is not code-signed; Windows security rules still apply.'
@@ -563,5 +578,5 @@ try {
     Write-Host ('Design Editor ' + $result.Version + ' is installed.')
     Write-Host 'Run: design-editor .  (Open a new terminal if the command is not found.)'
     Write-Host ('Command location: ' + $command)
-} catch { Write-Error $_.Exception.Message; throw }
 }
+} catch { throw ('Design Editor installation failed: ' + $_.Exception.Message) }
