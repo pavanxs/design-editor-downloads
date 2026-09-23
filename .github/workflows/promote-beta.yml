@@ -1,0 +1,47 @@
+name: Promote beta update
+
+# Only an explicit owner choice changes the feed. No build, push, release, or
+# scheduled event can silently promote a version for installed beta clients.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Published beta to offer installed apps (for example 0.1.0-beta.4)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: beta-channel-promotion
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    if: >-
+      github.repository == 'pavanxs/design-editor-downloads' &&
+      github.actor == 'pavanxs' &&
+      github.triggering_actor == 'pavanxs' &&
+      github.ref == 'refs/heads/main' &&
+      vars.BETA_PROMOTION_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - name: Read trusted promotion tooling
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set exact release runtime
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.12.0
+          package-manager-cache: false
+      - name: Verify selected release and update the compatible feed
+        env:
+          BETA_PROMOTION_ENABLED: ${{ vars.BETA_PROMOTION_ENABLED }}
+          DE_RELEASE_VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: node release-automation.cjs promote
