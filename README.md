@@ -1,6 +1,6 @@
 # Design Editor beta downloads
 
-Current test beta: **0.1.0-beta.3**. Windows x64, Intel Mac and Apple Silicon archives are attached to the corresponding release. These are early test releases, not a production-readiness or warning-free-installation claim.
+Current test beta: **0.1.0-beta.4**. Windows x64, Intel Mac and Apple Silicon archives are attached to the corresponding release. These are early test releases, not a production-readiness or warning-free-installation claim.
 
 ## Install
 
